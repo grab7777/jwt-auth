@@ -4,7 +4,8 @@ import dotenvExpand from "dotenv-expand";
 const myEnv = dotenv.config();
 dotenvExpand.expand(myEnv);
 import express, { json } from "express";
-import authRoutes from "./routes/auth.js";
+import authRoutes from "./routes/auth.ts";
+import profileRoutes from "./routes/profile.ts";
 import connectDB from "./config/db.js";
 
 const app = express();
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

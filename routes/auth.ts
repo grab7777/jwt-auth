@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/user.js";
+import User from "../models/user.ts";
 
 const router = express.Router();
 
@@ -16,7 +16,9 @@ router.post("/register", async (req, res) => {
     await newUser.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error instanceof Error ? error.message : "An error occurred",
+    });
   }
 });
 
@@ -36,12 +38,17 @@ router.post("/login", async (req, res) => {
       });
     }
     const payload = { id: existingUser.id, email: existingUser.email };
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "JWT_SECRET not set in env" });
+    }
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "15m",
+      expiresIn: "1m",
     });
     res.json({ token });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error instanceof Error ? error.message : "An error occurred",
+    });
   }
 });
 
