@@ -1,7 +1,11 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+import dotenvExpand from "dotenv-expand";
 
-const express = require("express");
-const connectDB = require("./config/db");
+const myEnv = dotenv.config();
+dotenvExpand.expand(myEnv);
+import express, { json } from "express";
+import authRoutes from "./routes/auth.js";
+import connectDB from "./config/db.js";
 
 const app = express();
 
@@ -14,17 +18,15 @@ if (!process.env.MONGO_URI) {
   // Print a redacted form to avoid leaking credentials
   const redacted = process.env.MONGO_URI.replace(/:(?:[^@]+)@/, ":***@");
   console.log(`MONGO_URI=${redacted}`);
+  await connectDB();
 }
 
-connectDB();
-
-app.use(express.json());
+app.use(json());
 
 app.get("/", (req, res) => {
   res.send("JWT auth api running...");
 });
 
-const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
 const PORT = process.env.PORT || 5000;

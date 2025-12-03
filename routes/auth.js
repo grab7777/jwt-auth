@@ -1,7 +1,7 @@
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+import express from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/user.js";
 
 const router = express.Router();
 
@@ -21,20 +21,28 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const existingUser = await User.findOne({ email });
-  if (!existingUser) {
-    return res.status(400).json({
-      message: "Sorry, wrong login credentials",
+  try {
+    const { email, password } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(400).json({
+        message: "Sorry, wrong login credentials",
+      });
+    }
+    const isPasswordOk = await bcrypt.compare(password, existingUser.password);
+    if (!isPasswordOk) {
+      return res.status(400).json({
+        message: "Sorry, wrong login credentials",
+      });
+    }
+    const payload = { id: existingUser.id, email: existingUser.email };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "15m",
     });
+    res.json({ token });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-  const isPasswordOk = await bcrypt.compare(password, existingUser.password);
-  if (!isPasswordOk) {
-    return res.status(400).json({
-      message: "Sorry, wrong login credentials",
-    });
-  }
-  res.status(200);
 });
 
-module.exports = router;
+export default router;
